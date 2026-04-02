@@ -110,14 +110,14 @@ class StcDataset(Dataset):
         # set transforms
         if is_train:
             self.transform_x = T.Compose([
-                T.Resize(c.img_size, Image.ANTIALIAS),
+                T.Resize(c.img_size, Image.LANCZOS),
                 T.RandomRotation(5),
                 T.CenterCrop(c.crp_size),
                 T.ToTensor()])
         # test:
         else:
             self.transform_x = T.Compose([
-                T.Resize(c.img_size, Image.ANTIALIAS),
+                T.Resize(c.img_size, Image.LANCZOS),
                 T.CenterCrop(c.crp_size),
                 T.ToTensor()])
         # mask
@@ -194,14 +194,14 @@ class MVTecDataset(Dataset):
         # set transforms
         if is_train:
             self.transform_x = T.Compose([
-                T.Resize(c.img_size, Image.ANTIALIAS),
+                T.Resize(c.img_size, Image.LANCZOS),
                 T.RandomRotation(5),
                 T.CenterCrop(c.crp_size),
                 T.ToTensor()])
         # test:
         else:
             self.transform_x = T.Compose([
-                T.Resize(c.img_size, Image.ANTIALIAS),
+                T.Resize(c.img_size, Image.LANCZOS),
                 T.CenterCrop(c.crp_size),
                 T.ToTensor()])
         # mask
