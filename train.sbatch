@@ -33,3 +33,14 @@ python -m pip install "git+https://github.com/vislearn/FrEIA.git@cc5cf5ebee08f9b
 
 echo "Training the model..."
 python main.py --gpu 0 --pro -inp 512 --dataset btad --class-name 01
+
+
+# with AUPRO
+# python main.py --gpu 0 --pro -inp 512 --dataset btad --class-name 01
+# python main.py --gpu 0 --pro -inp 512 --dataset btad --class-name 02
+# python main.py --gpu 0 --pro -inp 512 --dataset btad --class-name 03
+
+# wihtout AUPRO
+# python main.py --gpu 0 -inp 512 --dataset btad --class-name 01
+# python main.py --gpu 0 -inp 512 --dataset btad --class-name 02
+# python main.py --gpu 0 -inp 512 --dataset btad --class-name 03
