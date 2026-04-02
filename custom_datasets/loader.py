@@ -25,11 +25,42 @@ def _is_image_file(name):
 
 def _resolve_mask_path(gt_type_dir, image_path):
     stem = os.path.splitext(os.path.basename(image_path))[0]
-    for name in (stem + '_mask.png', stem + '_mask.bmp', stem + '_mask.jpg'):
+    for name in (
+        stem + '_mask.png',
+        stem + '_mask.bmp',
+        stem + '_mask.jpg',
+        stem + '.png',
+        stem + '.bmp',
+    ):
         cand = os.path.join(gt_type_dir, name)
         if os.path.isfile(cand):
             return cand
     return os.path.join(gt_type_dir, stem + '_mask.png')
+
+
+def _btad_image_buckets(img_type_dir):
+    """BTAD: images in type_dir/*.ext or type_dir/<sub>/*.ext (e.g. ok/0/0000.bmp)."""
+    buckets = []
+    entries = sorted(os.listdir(img_type_dir))
+    direct = [
+        os.path.join(img_type_dir, f)
+        for f in entries
+        if os.path.isfile(os.path.join(img_type_dir, f)) and _is_image_file(f)
+    ]
+    if direct:
+        buckets.append((None, direct))
+    for sub in entries:
+        sub_path = os.path.join(img_type_dir, sub)
+        if not os.path.isdir(sub_path):
+            continue
+        sub_files = [
+            os.path.join(sub_path, f)
+            for f in sorted(os.listdir(sub_path))
+            if _is_image_file(f)
+        ]
+        if sub_files:
+            buckets.append((sub, sub_files))
+    return buckets
 
 STC_CLASS_NAMES = ['01', '02', '03', '04', '05', '06', 
                 '07', '08', '09', '10', '11', '12'] #, '13' - no ground-truth]
@@ -157,6 +188,7 @@ class MVTecDataset(Dataset):
         self.class_name = c.class_name
         self.is_train = is_train
         self.cropsize = c.crp_size
+        self._is_btad = ds == 'btad'
         # load dataset
         self.x, self.y, self.mask = self.load_dataset_folder()
         # set transforms
@@ -184,7 +216,9 @@ class MVTecDataset(Dataset):
         x, y, mask = self.x[idx], self.y[idx], self.mask[idx]
         #x = Image.open(x).convert('RGB')
         x = Image.open(x)
-        if self.class_name in ['zipper', 'screw', 'grid']:  # handle greyscale classes
+        if self._is_btad:
+            x = x.convert('RGB')
+        elif self.class_name in ['zipper', 'screw', 'grid']:  # handle greyscale classes
             x = np.expand_dims(np.array(x), axis=2)
             x = np.concatenate([x, x, x], axis=2)
             
@@ -205,24 +239,25 @@ class MVTecDataset(Dataset):
 
     def load_dataset_folder(self):
         phase = 'train' if self.is_train else 'test'
-        x, y, mask = [], [], []
-
         img_dir = os.path.join(self.dataset_path, self.class_name, phase)
         gt_dir = os.path.join(self.dataset_path, self.class_name, 'ground_truth')
+        if self._is_btad:
+            return self._load_btad_folder(img_dir, gt_dir, phase)
+        return self._load_mvtec_folder(img_dir, gt_dir)
 
+    def _load_mvtec_folder(self, img_dir, gt_dir):
+        x, y, mask = [], [], []
         img_types = sorted(os.listdir(img_dir))
         for img_type in img_types:
-
-            # load images
             img_type_dir = os.path.join(img_dir, img_type)
             if not os.path.isdir(img_type_dir):
                 continue
-            img_fpath_list = sorted([os.path.join(img_type_dir, f)
-                                     for f in os.listdir(img_type_dir)
-                                     if _is_image_file(f)])
+            img_fpath_list = sorted([
+                os.path.join(img_type_dir, f)
+                for f in os.listdir(img_type_dir)
+                if _is_image_file(f)
+            ])
             x.extend(img_fpath_list)
-
-            # load gt labels
             if img_type == 'good':
                 y.extend([0] * len(img_fpath_list))
                 mask.extend([None] * len(img_fpath_list))
@@ -231,7 +266,32 @@ class MVTecDataset(Dataset):
                 gt_type_dir = os.path.join(gt_dir, img_type)
                 gt_fpath_list = [_resolve_mask_path(gt_type_dir, f) for f in img_fpath_list]
                 mask.extend(gt_fpath_list)
-
         assert len(x) == len(y), 'number of x and y should be same'
+        return list(x), list(y), list(mask)
 
+    def _load_btad_folder(self, img_dir, gt_dir, phase):
+        """BTAD: train/ok/0/*.bmp, test/ok/..., test/ko/...; masks under ground_truth/..."""
+        x, y, mask = [], [], []
+        normal_names = ('good', 'ok')
+        for img_type in sorted(os.listdir(img_dir)):
+            if phase == 'train' and img_type not in normal_names:
+                continue
+            img_type_dir = os.path.join(img_dir, img_type)
+            if not os.path.isdir(img_type_dir):
+                continue
+            for rel_sub, paths in _btad_image_buckets(img_type_dir):
+                is_normal = img_type in normal_names
+                for fp in paths:
+                    x.append(fp)
+                    if is_normal:
+                        y.append(0)
+                        mask.append(None)
+                    else:
+                        y.append(1)
+                        if rel_sub is None:
+                            gt_sub = os.path.join(gt_dir, img_type)
+                        else:
+                            gt_sub = os.path.join(gt_dir, img_type, rel_sub)
+                        mask.append(_resolve_mask_path(gt_sub, fp))
+        assert len(x) == len(y), 'number of x and y should be same'
         return list(x), list(y), list(mask)
