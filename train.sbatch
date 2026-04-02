@@ -2,8 +2,8 @@
 #SBATCH -N 1            # number of nodes
 #SBATCH -c 10        # number of cores 
 #SBATCH --mem=200G   # memory in GB
-#SBATCH -G 1   # number of GPUs
-#SBATCH -t 1-00:00:00   # time in d-hh:mm:ss
+#SBATCH -G a100:1   # number of GPUs
+#SBATCH -t 0-16:00:00   # time in d-hh:mm:ss
 #SBATCH -p general      # partition
 #SBATCH -A class_cse579spring2026 # class account
 #SBATCH -q class      # QOS
