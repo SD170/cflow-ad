@@ -15,6 +15,22 @@ MVTEC_CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid',
                'hazelnut', 'leather', 'metal_nut', 'pill', 'screw',
                'tile', 'toothbrush', 'transistor', 'wood', 'zipper']
 
+# BTAD (e.g. Kaggle BTech_Dataset_transformed): 01/, 02/, 03/ with train/test/ground_truth
+BTAD_CLASS_NAMES = ['01', '02', '03']
+
+def _is_image_file(name):
+    ext = os.path.splitext(name)[1].lower()
+    return ext in ('.png', '.bmp', '.jpg', '.jpeg')
+
+
+def _resolve_mask_path(gt_type_dir, image_path):
+    stem = os.path.splitext(os.path.basename(image_path))[0]
+    for name in (stem + '_mask.png', stem + '_mask.bmp', stem + '_mask.jpg'):
+        cand = os.path.join(gt_type_dir, name)
+        if os.path.isfile(cand):
+            return cand
+    return os.path.join(gt_type_dir, stem + '_mask.png')
+
 STC_CLASS_NAMES = ['01', '02', '03', '04', '05', '06', 
                 '07', '08', '09', '10', '11', '12'] #, '13' - no ground-truth]
 
@@ -132,7 +148,11 @@ class StcDataset(Dataset):
 
 class MVTecDataset(Dataset):
     def __init__(self, c, is_train=True):
-        assert c.class_name in MVTEC_CLASS_NAMES, 'class_name: {}, should be in {}'.format(c.class_name, MVTEC_CLASS_NAMES)
+        ds = getattr(c, 'dataset', 'mvtec')
+        if ds == 'btad':
+            assert c.class_name in BTAD_CLASS_NAMES, 'class_name: {}, should be in {}'.format(c.class_name, BTAD_CLASS_NAMES)
+        else:
+            assert c.class_name in MVTEC_CLASS_NAMES, 'class_name: {}, should be in {}'.format(c.class_name, MVTEC_CLASS_NAMES)
         self.dataset_path = c.data_path
         self.class_name = c.class_name
         self.is_train = is_train
@@ -199,7 +219,7 @@ class MVTecDataset(Dataset):
                 continue
             img_fpath_list = sorted([os.path.join(img_type_dir, f)
                                      for f in os.listdir(img_type_dir)
-                                     if f.endswith('.png')])
+                                     if _is_image_file(f)])
             x.extend(img_fpath_list)
 
             # load gt labels
@@ -209,9 +229,7 @@ class MVTecDataset(Dataset):
             else:
                 y.extend([1] * len(img_fpath_list))
                 gt_type_dir = os.path.join(gt_dir, img_type)
-                img_fname_list = [os.path.splitext(os.path.basename(f))[0] for f in img_fpath_list]
-                gt_fpath_list = [os.path.join(gt_type_dir, img_fname + '_mask.png')
-                                 for img_fname in img_fname_list]
+                gt_fpath_list = [_resolve_mask_path(gt_type_dir, f) for f in img_fpath_list]
                 mask.extend(gt_fpath_list)
 
         assert len(x) == len(y), 'number of x and y should be same'

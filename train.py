@@ -276,6 +276,9 @@ def train(c):
     if c.dataset == 'mvtec':
         train_dataset = MVTecDataset(c, is_train=True)
         test_dataset  = MVTecDataset(c, is_train=False)
+    elif c.dataset == 'btad':
+        train_dataset = MVTecDataset(c, is_train=True)
+        test_dataset  = MVTecDataset(c, is_train=False)
     elif c.dataset == 'stc':
         train_dataset = StcDataset(c, is_train=True)
         test_dataset  = StcDataset(c, is_train=False)

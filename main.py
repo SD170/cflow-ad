@@ -46,6 +46,8 @@ def main(c):
     # dataloader parameters
     if c.dataset == 'mvtec':
         c.data_path = './data/MVTec-AD'
+    elif c.dataset == 'btad':
+        c.data_path = './data/BTAD/BTech_Dataset_transformed'
     elif c.dataset == 'stc':
         c.data_path = './data/STC/shanghaitech'
     elif c.dataset == 'video':

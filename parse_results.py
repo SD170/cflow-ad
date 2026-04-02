@@ -8,7 +8,7 @@ RESULT_DIR = './results'
 def get_args():
     parser = argparse.ArgumentParser(description='CFLOW-AD')
     parser.add_argument('--dataset', default='mvtec', type=str, metavar='D',
-                        help='dataset name: mvtec/stc/video (default: mvtec)')
+                        help='dataset name: mvtec/btad/stc (default: mvtec)')
     parser.add_argument('-enc', '--enc-arch', default='wide_resnet50_2', type=str, metavar='A',
                         help='feature extractor: wide_resnet50_2/resnet18/mobilenet_v3_large (default: wide_resnet50_2)')
     parser.add_argument('-dec', '--dec-arch', default='freia-cflow', type=str, metavar='A',
@@ -32,6 +32,8 @@ def main(c):
         class_names = ['bottle', 'cable', 'capsule', 'carpet', 'grid',
                     'hazelnut', 'leather', 'metal_nut', 'pill', 'screw',
                     'tile', 'toothbrush', 'transistor', 'wood', 'zipper']
+    elif c.dataset == 'btad':
+        class_names = ['01', '02', '03']
     elif c.dataset == 'stc':
         class_names = ['01', '02', '03', '04', '05', '06', 
                     '07', '08', '09', '10', '11', '12'] #, '13']

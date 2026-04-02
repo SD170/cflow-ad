@@ -7,7 +7,7 @@ __all__ = ['get_args']
 def get_args():
     parser = argparse.ArgumentParser(description='CFLOW-AD')
     parser.add_argument('--dataset', default='mvtec', type=str, metavar='D',
-                        help='dataset name: mvtec/stc (default: mvtec)')
+                        help='dataset name: mvtec/btad/stc (default: mvtec)')
     parser.add_argument('--checkpoint', default='', type=str, metavar='D',
                         help='file with saved checkpoint')
     parser.add_argument('-cl', '--class-name', default='none', type=str, metavar='C',
