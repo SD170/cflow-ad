@@ -27,15 +27,15 @@ module load mamba/latest
 
 creating a new python env (python 3.8 cuz the readme says that)
 ```
-mamba create -n cflow-scratch-v1 -c conda-forge python=3.8
+mamba create -n kaggle-setup -c conda-forge python=3.8
 ```
 
 activate 
 ```
-source activate cflow-scratch-v1
+source activate kaggle-setup
 ```
 
-installed kaggle
+install kaggle
 ```
 python -m pip install -U kaggle
 ```
@@ -60,4 +60,36 @@ mv ./data ./BTAD
 now we're in /scratch/sdutta60/cflow-ad/data/BTAD
 
 
+now exit from the node, and ask for a gpu node, so that we can test stuff out
+```
+exit
+```
 
+asking for 1 a100 for 1 hr
+```
+salloc -p general -q class -c 2 --mem=8G -t 0-1 -G a100:1 -A class_cse579spring2026
+```
+
+theres an exiting base env we can use for cuda
+```
+module load mamba/latest
+source activate pytorch-gpu-2.3.1-cuda-12.1
+```
+
+install deps (after cd to the project folder):
+```
+python -m pip install -U pip
+python -m pip install -r requirements.txt
+```
+
+install FrEIA (some deps, no idea what it does):
+```
+python -m pip install "git+https://github.com/vislearn/FrEIA.git@cc5cf5ebee08f9bb762bab5a6535c11d19ccb026"
+```
+
+
+
+to run:
+```
+python main.py --gpu 0 --pro -inp 512 --dataset btad --class-name 01
+```
