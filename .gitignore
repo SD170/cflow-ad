@@ -1,0 +1,34 @@
+# Data & artifacts (large / local)
+data/
+weights/
+results/
+viz/
+inference_outputs/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Envs
+.env
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*~
+
+# Jupyter
+.ipynb_checkpoints/
