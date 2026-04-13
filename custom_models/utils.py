@@ -39,7 +39,9 @@ def save_weights(encoder, decoders, model_name, run_date):
 
 def load_weights(encoder, decoders, filename):
     path = os.path.join(filename)
-    state = torch.load(path)
+    # map_location='cpu' so checkpoints saved on CUDA load on CPU-only nodes; weights
+    # then copy to encoder/decoders' device via load_state_dict.
+    state = torch.load(path, map_location=torch.device('cpu'))
     encoder.load_state_dict(state['encoder_state_dict'], strict=False)
     decoders = [decoder.load_state_dict(state, strict=False) for decoder, state in zip(decoders, state['decoder_state_dict'])]
     print('Loading weights from {}'.format(filename))
